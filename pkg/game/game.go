@@ -113,6 +113,9 @@ func displayHand(hand []Card, hideFirst bool) {
 		for i := 1; i < len(hand); i++ {
 			printCard(hand[i])
 		}
+		// Show partial score for visible cards only
+		visibleScore := calculateScore(hand[1:])
+		fmt.Printf(" (%s)", yellow(fmt.Sprintf("%d+?", visibleScore)))
 		fmt.Println()
 		return
 	}
@@ -120,6 +123,9 @@ func displayHand(hand []Card, hideFirst bool) {
 	for _, card := range hand {
 		printCard(card)
 	}
+	// Show total score for all cards
+	totalScore := calculateScore(hand)
+	fmt.Printf(" (%s)", yellow(fmt.Sprintf("%d", totalScore)))
 	fmt.Println()
 }
 
@@ -191,6 +197,8 @@ func StartGame() {
 				deck = deck[1:]
 				fmt.Printf("\n%s's hand: ", green(player.Name))
 				displayHand(player.Hand, false)
+				fmt.Printf("%s's hand: ", red(dealer.Name))
+				displayHand(dealer.Hand, true)
 			} else if choice == "S" {
 				break
 			}
@@ -210,7 +218,7 @@ func StartGame() {
 			fmt.Printf("%s hits: ", red(dealer.Name))
 			displayHand(dealer.Hand, false)
 		}
-		
+
 		// Determine winner
 		player.Score = calculateScore(player.Hand)
 		dealer.Score = calculateScore(dealer.Hand)
