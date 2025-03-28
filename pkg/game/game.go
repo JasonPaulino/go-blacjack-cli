@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
@@ -35,7 +37,13 @@ var (
 )
 
 func clearScreen() {
-	fmt.Print("\033[H\033[2J")
+	if runtime.GOOS == "windows" {
+		cmd := exec.Command("cmd", "/c", "cls")
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	} else {
+		fmt.Print("\033[H\033[2J")
+	}
 }
 
 func showLogo() {
@@ -214,9 +222,9 @@ func StartGame() {
 		if player.Score > 21 {
 			showResult("Bust! Dealer wins!", false)
 		} else if dealer.Score > 21 {
-			showResult(player.Name+" wins!", true)
+			showResult(playerName+" wins!", true)
 		} else if player.Score > dealer.Score {
-			showResult(player.Name+" wins!", true)
+			showResult(playerName+" wins!", true)
 		} else if dealer.Score > player.Score {
 			showResult("Dealer wins!", false)
 		} else {
