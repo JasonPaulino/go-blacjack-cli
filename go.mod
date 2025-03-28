@@ -1,3 +1,3 @@
-module github.com/jasonpaulino/blackjack-cli
+module github.com/JasonPaulino/go-blacjack-cli
 
 go 1.21
