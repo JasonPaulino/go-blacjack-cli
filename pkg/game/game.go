@@ -159,6 +159,7 @@ func StartGame() {
 	for {
 		clearScreen()
 		showLogo()
+		fmt.Printf("\n%s, your current game is starting...\n", green(playerName))
 		deck := createDeck()
 		deck.shuffle()
 		
@@ -179,18 +180,20 @@ func StartGame() {
 		displayHand(dealer.Hand, true)
 		
 		// Player's turn
-		for {
+		gameOver := false
+		for !gameOver {
 			player.Score = calculateScore(player.Hand)
 			if player.Score > 21 {
 				break
 			}
 			
 			fmt.Printf("\n%s's score: %s\n", green(player.Name), yellow(fmt.Sprintf("%d", player.Score)))
-			fmt.Print(cyan("Do you want to (H)it or (S)tand? "))
+			fmt.Print(cyan("(H)it, (S)tand, or (Q)uit game? "))
 			choice, _ := reader.ReadString('\n')
 			choice = strings.ToUpper(strings.TrimSpace(choice))
 			
-			if choice == "H" {
+			switch choice {
+			case "H":
 				fmt.Println(yellow("\nDealing card..."))
 				animateDealing()
 				player.Hand = append(player.Hand, deck[0])
@@ -199,26 +202,31 @@ func StartGame() {
 				displayHand(player.Hand, false)
 				fmt.Printf("%s's hand: ", red(dealer.Name))
 				displayHand(dealer.Hand, true)
-			} else if choice == "S" {
-				break
+			case "S":
+				gameOver = true
+			case "Q":
+				fmt.Println(green("\nThanks for playing! 👋"))
+				return
 			}
 		}
 		
-		// Dealer's turn
-		fmt.Printf("\n%s's full hand: ", red(dealer.Name))
-		displayHand(dealer.Hand, false)
-		
-		dealer.Score = calculateScore(dealer.Hand)
-		for dealer.Score < 17 {
-			fmt.Println(yellow("\nDealer hits..."))
-			animateDealing()
-			dealer.Hand = append(dealer.Hand, deck[0])
-			deck = deck[1:]
-			dealer.Score = calculateScore(dealer.Hand)
-			fmt.Printf("%s hits: ", red(dealer.Name))
+		if player.Score <= 21 {
+			// Dealer's turn
+			fmt.Printf("\n%s's full hand: ", red(dealer.Name))
 			displayHand(dealer.Hand, false)
+			
+			dealer.Score = calculateScore(dealer.Hand)
+			for dealer.Score < 17 {
+				fmt.Println(yellow("\nDealer hits..."))
+				animateDealing()
+				dealer.Hand = append(dealer.Hand, deck[0])
+				deck = deck[1:]
+				dealer.Score = calculateScore(dealer.Hand)
+				fmt.Printf("%s hits: ", red(dealer.Name))
+				displayHand(dealer.Hand, false)
+			}
 		}
-
+		
 		// Determine winner
 		player.Score = calculateScore(player.Hand)
 		dealer.Score = calculateScore(dealer.Hand)
@@ -239,10 +247,9 @@ func StartGame() {
 			fmt.Println(yellow("\n🤝 It's a tie! 🤝"))
 		}
 		
-		fmt.Print(magenta("\nPlay again? (Y/N): "))
-		again, _ := reader.ReadString('\n')
-		again = strings.ToUpper(strings.TrimSpace(again))
-		if again != "Y" {
+		fmt.Println(cyan("\nPress Enter to play again or type 'Q' to quit..."))
+		input, _ := reader.ReadString('\n')
+		if strings.ToUpper(strings.TrimSpace(input)) == "Q" {
 			break
 		}
 	}

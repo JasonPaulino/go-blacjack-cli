@@ -12,6 +12,8 @@ A simple command-line implementation of Blackjack in Go.
 - ASCII art logo
 - Card dealing animations
 - Colored suits (red hearts/diamonds, cyan spades/clubs)
+- Score display for both player and dealer
+- Continuous gameplay with option to quit anytime
 
 ## Installation
 
@@ -38,6 +40,10 @@ go run cmd/blackjack/main.go
 ## How to Play
 1. Enter your name when prompted
 2. You'll be dealt two cards
-3. Choose to Hit (H) or Stand (S)
+3. Choose to:
+   - (H)it: Get another card
+   - (S)tand: Keep your current hand
+   - (Q)uit: Exit the game
 4. Try to get as close to 21 as possible without going over
 5. Beat the dealer's hand to win!
+6. Press Enter to play again or 'Q' to quit after each round
