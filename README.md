@@ -8,13 +8,17 @@ A simple command-line implementation of Blackjack in Go.
 - Standard Blackjack rules
 - Ace handling (1 or 11 points)
 - Option to play multiple games
+- Colorful interface with animations
+- ASCII art logo
+- Card dealing animations
+- Colored suits (red hearts/diamonds, cyan spades/clubs)
 
 ## Installation
 
 To install the game globally, run:
 
 ```bash
-go install github.com/jasonpaulino/blackjack-cli/cmd/blackjack@latest
+go install github.com/JasonPaulino/go-blacjack-cli/cmd/blackjack@latest
 ```
 
 After installation, you can run the game from anywhere by typing:
