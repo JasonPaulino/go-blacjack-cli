@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 type Card struct {
@@ -21,6 +23,42 @@ type Player struct {
 	Name  string
 	Hand  []Card
 	Score int
+}
+
+var (
+	green   = color.New(color.FgGreen).SprintFunc()
+	red     = color.New(color.FgRed).SprintFunc()
+	yellow  = color.New(color.FgYellow).SprintFunc()
+	blue    = color.New(color.FgBlue).SprintFunc()
+	magenta = color.New(color.FgMagenta).SprintFunc()
+	cyan    = color.New(color.FgCyan).SprintFunc()
+)
+
+func clearScreen() {
+	fmt.Print("\033[H\033[2J")
+}
+
+func showLogo() {
+	logo := `
+	██████╗ ██╗      █████╗  ██████╗██╗  ██╗     ██╗ █████╗  ██████╗██╗  ██╗
+	██╔══██╗██║     ██╔══██╗██╔════╝██║ ██╔╝     ██║██╔══██╗██╔════╝██║ ██╔╝
+	██████╔╝██║     ███████║██║     █████╔╝      ██║███████║██║     █████╔╝ 
+	██╔══██╗██║     ██╔══██║██║     ██╔═██╗ ██   ██║██╔══██║██║     ██╔═██╗ 
+	██████╔╝███████╗██║  ██║╚██████╗██║  ██╗╚█████╔╝██║  ██║╚██████╗██║  ██╗
+	╚═════╝ ╚══════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ ╚════╝ ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+	`
+	fmt.Println(yellow(logo))
+}
+
+func animateDealing() {
+	frames := []string{"🂠 ", " 🂠", "  🂠", "   🂠", "    🂠"}
+	for i := 0; i < 5; i++ {
+		for _, frame := range frames {
+			fmt.Printf("\r%s", frame)
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
+	fmt.Println()
 }
 
 func createDeck() Deck {
@@ -63,29 +101,50 @@ func calculateScore(hand []Card) int {
 
 func displayHand(hand []Card, hideFirst bool) {
 	if hideFirst {
-		fmt.Print("🂠 ")
+		fmt.Print(blue("🂠 "))
 		for i := 1; i < len(hand); i++ {
-			fmt.Printf("%s%s ", hand[i].Value, hand[i].Suit)
+			printCard(hand[i])
 		}
 		fmt.Println()
 		return
 	}
 	
 	for _, card := range hand {
-		fmt.Printf("%s%s ", card.Value, card.Suit)
+		printCard(card)
 	}
 	fmt.Println()
 }
 
+func printCard(card Card) {
+	cardStr := fmt.Sprintf("%s%s ", card.Value, card.Suit)
+	if card.Suit == "♥" || card.Suit == "♦" {
+		fmt.Print(red(cardStr))
+	} else {
+		fmt.Print(cyan(cardStr))
+	}
+}
+
+func showResult(message string, isWin bool) {
+	if isWin {
+		fmt.Println(green("\n🎉 " + message + " 🎉"))
+	} else {
+		fmt.Println(red("\n💔 " + message + " 💔"))
+	}
+}
+
 // StartGame starts a new blackjack game session
 func StartGame() {
+	clearScreen()
+	showLogo()
+	
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Welcome to Blackjack!")
-	fmt.Print("Enter your name: ")
+	fmt.Print(magenta("\nEnter your name: "))
 	playerName, _ := reader.ReadString('\n')
 	playerName = strings.TrimSpace(playerName)
 	
 	for {
+		clearScreen()
+		showLogo()
 		deck := createDeck()
 		deck.shuffle()
 		
@@ -93,13 +152,16 @@ func StartGame() {
 		dealer := Player{Name: "Dealer", Hand: []Card{}, Score: 0}
 		
 		// Initial deal
+		fmt.Println(yellow("\nDealing cards..."))
+		animateDealing()
+		
 		player.Hand = append(player.Hand, deck[0], deck[1])
 		dealer.Hand = append(dealer.Hand, deck[2], deck[3])
 		deck = deck[4:]
 		
-		fmt.Printf("\n%s's hand: ", player.Name)
+		fmt.Printf("\n%s's hand: ", green(player.Name))
 		displayHand(player.Hand, false)
-		fmt.Printf("Dealer's hand: ")
+		fmt.Printf("%s's hand: ", red(dealer.Name))
 		displayHand(dealer.Hand, true)
 		
 		// Player's turn
@@ -109,15 +171,17 @@ func StartGame() {
 				break
 			}
 			
-			fmt.Printf("\nYour score: %d\n", player.Score)
-			fmt.Print("Do you want to (H)it or (S)tand? ")
+			fmt.Printf("\n%s's score: %s\n", green(player.Name), yellow(fmt.Sprintf("%d", player.Score)))
+			fmt.Print(cyan("Do you want to (H)it or (S)tand? "))
 			choice, _ := reader.ReadString('\n')
 			choice = strings.ToUpper(strings.TrimSpace(choice))
 			
 			if choice == "H" {
+				fmt.Println(yellow("\nDealing card..."))
+				animateDealing()
 				player.Hand = append(player.Hand, deck[0])
 				deck = deck[1:]
-				fmt.Printf("\n%s's hand: ", player.Name)
+				fmt.Printf("\n%s's hand: ", green(player.Name))
 				displayHand(player.Hand, false)
 			} else if choice == "S" {
 				break
@@ -125,15 +189,17 @@ func StartGame() {
 		}
 		
 		// Dealer's turn
-		fmt.Printf("\nDealer's hand: ")
+		fmt.Printf("\n%s's full hand: ", red(dealer.Name))
 		displayHand(dealer.Hand, false)
 		
 		dealer.Score = calculateScore(dealer.Hand)
 		for dealer.Score < 17 {
+			fmt.Println(yellow("\nDealer hits..."))
+			animateDealing()
 			dealer.Hand = append(dealer.Hand, deck[0])
 			deck = deck[1:]
 			dealer.Score = calculateScore(dealer.Hand)
-			fmt.Printf("Dealer hits: ")
+			fmt.Printf("%s hits: ", red(dealer.Name))
 			displayHand(dealer.Hand, false)
 		}
 		
@@ -141,23 +207,23 @@ func StartGame() {
 		player.Score = calculateScore(player.Hand)
 		dealer.Score = calculateScore(dealer.Hand)
 		
-		fmt.Printf("\nFinal scores:\n")
-		fmt.Printf("%s: %d\n", player.Name, player.Score)
-		fmt.Printf("Dealer: %d\n", dealer.Score)
+		fmt.Printf("\n%s Final scores %s\n", yellow("==="), yellow("==="))
+		fmt.Printf("%s: %s\n", green(player.Name), yellow(fmt.Sprintf("%d", player.Score)))
+		fmt.Printf("%s: %s\n", red(dealer.Name), yellow(fmt.Sprintf("%d", dealer.Score)))
 		
 		if player.Score > 21 {
-			fmt.Println("Bust! Dealer wins!")
+			showResult("Bust! Dealer wins!", false)
 		} else if dealer.Score > 21 {
-			fmt.Printf("%s wins!\n", player.Name)
+			showResult(player.Name+" wins!", true)
 		} else if player.Score > dealer.Score {
-			fmt.Printf("%s wins!\n", player.Name)
+			showResult(player.Name+" wins!", true)
 		} else if dealer.Score > player.Score {
-			fmt.Println("Dealer wins!")
+			showResult("Dealer wins!", false)
 		} else {
-			fmt.Println("It's a tie!")
+			fmt.Println(yellow("\n🤝 It's a tie! 🤝"))
 		}
 		
-		fmt.Print("\nPlay again? (Y/N): ")
+		fmt.Print(magenta("\nPlay again? (Y/N): "))
 		again, _ := reader.ReadString('\n')
 		again = strings.ToUpper(strings.TrimSpace(again))
 		if again != "Y" {
@@ -165,5 +231,5 @@ func StartGame() {
 		}
 	}
 	
-	fmt.Println("Thanks for playing!")
+	fmt.Println(green("\nThanks for playing! 👋"))
 }
